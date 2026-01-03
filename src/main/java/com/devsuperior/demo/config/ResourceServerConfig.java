@@ -47,7 +47,8 @@ public class ResourceServerConfig {
 		http.csrf(csrf -> csrf.disable());
 		http.authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
 		http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
-		http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+		http.cors(Customizer.withDefaults());
+
 		return http.build();
 	}
 
@@ -78,11 +79,11 @@ public class ResourceServerConfig {
 		return source;
 	}
 
-	@Bean
+	/*@Bean
 	FilterRegistrationBean<CorsFilter> corsFilter() {
 		FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(
 				new CorsFilter(corsConfigurationSource()));
 		bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
 		return bean;
-	}
+	}*/
 }

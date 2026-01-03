@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -70,32 +71,19 @@ public class AuthorizationServerConfig {
 	@Order(2)
 	public SecurityFilterChain asSecurityFilterChain(HttpSecurity http) throws Exception {
 
-	    OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = 
-	            new OAuth2AuthorizationServerConfigurer();
+		OAuth2AuthorizationServerConfiguration.applyDefaultSecurity(http);
 
-	    // Aplica o configurer
-	    http
-	        .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
-	        .with(authorizationServerConfigurer, (authorizationServer) -> {
-	            authorizationServer
-	                .tokenEndpoint(tokenEndpoint -> tokenEndpoint
-	                    .accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
-	                    .authenticationProvider(
-	                        new CustomPasswordAuthenticationProvider(
-	                            authorizationService(),
-	                            tokenGenerator(),
-	                            userDetailsService,
-	                            passwordEncoder()
-	                        )
-	                    )
-	                );
-	        });
+		// @formatter:off
+		http.cors(Customizer.withDefaults()).getConfigurer(OAuth2AuthorizationServerConfigurer.class)
+			.tokenEndpoint(tokenEndpoint -> tokenEndpoint
+				.accessTokenRequestConverter(new CustomPasswordAuthenticationConverter())
+				.authenticationProvider(new CustomPasswordAuthenticationProvider(authorizationService(), tokenGenerator(), userDetailsService, passwordEncoder())));
 
-	    http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
+		http.oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(Customizer.withDefaults()));
+		// @formatter:on
 
-	    return http.build();
+		return http.build();
 	}
-
 
 	@Bean
 	public OAuth2AuthorizationService authorizationService() {
